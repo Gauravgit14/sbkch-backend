@@ -42,7 +42,7 @@ app.post("/send", async (req, res) => {
     // Email to support team
     await transporter.sendMail({
       from: `"SBKCH Bot" <${process.env.SMTP_USER}>`,
-      to: "support@sbkch.com",
+      to: "gaurav@sbkch.com",
       subject: `New Complaint - ${complaintId}`,
       html: message
     });
