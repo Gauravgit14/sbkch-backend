@@ -18,21 +18,19 @@ const pool = new Pool({
   ssl: { rejectUnauthorized: false },
 });
 
+// ✅ Replace GoDaddy SMTP with SendGrid
+const transporter = nodemailer.createTransport({
+  service: "SendGrid",
+  auth: {
+    user: "apikey", // required literal 'apikey'
+    pass: process.env.SENDGRID_API_KEY // your real API key from .env
+  },
+});
+
 // POST route to handle complaint and save to DB
 app.post("/send", async (req, res) => {
   const { name, email, phone, issue } = req.body;
   const complaintId = uuidv4().split("-")[0].toUpperCase();
-
-  // GoDaddy SMTP config
-  const transporter = nodemailer.createTransport({
-    host: "smtp.secureserver.net",
-    port: 465,
-    secure: true,
-    auth: {
-      user: "gaurav@sbkch.com", // your GoDaddy email
-      pass: "4C&3tY5?388QuZn",   // your GoDaddy password
-    },
-  });
 
   // Email to support team
   const supportMailOptions = {
