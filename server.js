@@ -20,10 +20,12 @@ const pool = new Pool({
 
 // ✅ Replace GoDaddy SMTP with SendGrid
 const transporter = nodemailer.createTransport({
-  service: "SendGrid",
+  host: "smtp.sendgrid.net",
+  port: 465,
+  secure: true,
   auth: {
-    user: "apikey", // required literal 'apikey'
-    pass: process.env.SENDGRID_API_KEY // your real API key from .env
+    user: "apikey", // this word is fixed
+    pass: process.env.SENDGRID_API_KEY // your actual key from Render
   },
 });
 
