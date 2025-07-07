@@ -29,15 +29,12 @@ app.post("/send", async (req, res) => {
   `;
 
   try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT),
-      secure: true,
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS
-      }
-    });
+    const transporter = nodemailer.createTransport({ 
+    service: "SendGrid",
+  auth: {
+    user: "apikey", // this must be literally the string 'apikey'
+    pass: process.env.SENDGRID_API_KEY // the key you set on Render
+  }});
 
     // Email to support team
     await transporter.sendMail({
