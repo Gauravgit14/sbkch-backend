@@ -1,9 +1,8 @@
+// 🧠 OpenAI setup
 const OpenAI = require("openai");
-
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
-
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -16,36 +15,48 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// ✅ Logging middleware to verify incoming requests
+app.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.url}`);
+  next();
+});
+
+// ✅ Handle CORS + Preflight requests properly
+app.use(cors({
+  origin: "*", // or restrict to your frontend like "https://sbkch.com"
+  methods: ["GET", "POST", "OPTIONS"],
+  allowedHeaders: ["Content-Type"]
+}));
+app.options("/chat", (req, res) => res.sendStatus(200)); // preflight support
+app.options("/send", (req, res) => res.sendStatus(200)); // preflight support
+
 app.use(bodyParser.json());
 
-// ✅ PostgreSQL connection pool
+// ✅ PostgreSQL connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: { rejectUnauthorized: false },
 });
 
-// ✅ Using SendGrid as SMTP with Nodemailer
-// BLOCKER FIX: You had GoDaddy SMTP (which times out on Render free tier)
-// SendGrid is more reliable
+// ✅ Email transporter (SendGrid)
 const transporter = nodemailer.createTransport({
   host: "smtp.sendgrid.net",
   port: 465,
   secure: true,
   auth: {
-    user: "apikey", // This is literally "apikey"
-    pass: process.env.SENDGRID_API_KEY // 🔒 Set in Render Dashboard
+    user: "apikey", // literal value
+    pass: process.env.SENDGRID_API_KEY
   },
 });
 
+// ✅ Complaint submission endpoint
 app.post("/send", async (req, res) => {
   const { name, email, phone, issue } = req.body;
   const complaintId = uuidv4().split("-")[0].toUpperCase();
 
-  // ✅ Email to YOU
   const adminMailOptions = {
     from: "gaurav@sbkch.com",
-    to: "gaurav@sbkch.com", // You receive it
+    to: "gaurav@sbkch.com",
     subject: `📩 New Complaint Received #${complaintId}`,
     text: `📬 New Complaint Received:
 
@@ -56,7 +67,6 @@ Phone: ${phone}
 Issue: ${issue}`
   };
 
-  // ✅ Email to the CLIENT (user)
   const clientMailOptions = {
     from: "gaurav@sbkch.com",
     to: email,
@@ -75,11 +85,9 @@ Team sbkch.com`
   };
 
   try {
-    // ✅ Send both emails
     await transporter.sendMail(adminMailOptions);
     await transporter.sendMail(clientMailOptions);
 
-    // ✅ Save to DB
     await pool.query(
       `INSERT INTO chatbot_messages (name, email, phone, issue, complaint_id)
        VALUES ($1, $2, $3, $4, $5)`,
@@ -92,17 +100,17 @@ Team sbkch.com`
     });
   } catch (error) {
     console.error("❌ Error:", error);
-    res.status(500).json({
-      error: "Failed to send emails or save to database"
-    });
+    res.status(500).json({ error: "Failed to send emails or save to database" });
   }
 });
+
+// ✅ AI chat endpoint
 app.post("/chat", async (req, res) => {
   const { question } = req.body;
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo", // or "gpt version"
+      model: "gpt-3.5-turbo", // Make sure this model is accessible under your key
       messages: [
         {
           role: "user",
@@ -140,8 +148,6 @@ app.post("/chat", async (req, res) => {
   }
 });
 
-
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
 });
-
