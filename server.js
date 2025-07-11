@@ -101,8 +101,8 @@ app.post("/chat", async (req, res) => {
   const { question } = req.body;
 
   try {
-    const response = await openai.createChatCompletion({
-      model: "gpt-4", // or use "gpt-3.5-turbo"
+    const response = await openai.chat.completions.create({
+      model: "gpt-4", // or "gpt-3.5-turbo"
       messages: [
         {
           role: "user",
@@ -111,9 +111,8 @@ app.post("/chat", async (req, res) => {
       ],
     });
 
-    const answer = response.data.choices[0].message.content;
+    const answer = response.choices[0].message.content;
 
-    // 🔹 Optional: return mock chart data
     const chartData = [
       { time: "2:00 PM", traffic: 120 },
       { time: "2:30 PM", traffic: 180 },
@@ -123,18 +122,24 @@ app.post("/chat", async (req, res) => {
     res.json({ answer, chartData });
   } catch (error) {
     console.error("❌ ChatGPT Error:", error.response?.data || error.message);
-     let fallbackMessage = "Oops! Something went wrong. Please try again later.";
+
+    let fallbackMessage = "Oops! Something went wrong. Please try again later.";
 
     if (error.response?.status === 401) {
       fallbackMessage = "🔒 Invalid or missing API key. Contact admin.";
     } else if (error.response?.status === 429) {
       fallbackMessage = "⚠️ Too many requests. Please wait and try again.";
-    } else if (error.response?.status === 400 && error.response?.data?.error?.message.includes("maximum context length")) {
+    } else if (
+      error.response?.status === 400 &&
+      error.response?.data?.error?.message.includes("maximum context length")
+    ) {
       fallbackMessage = "⚠️ Your question is too long. Try shortening it.";
     }
-    res.status(500).json({ error: "Failed to connect to ChatGPT" });
+
+    res.status(500).json({ answer: fallbackMessage });
   }
 });
+
 
 app.listen(PORT, () => {
   console.log(`✅ Server running on http://localhost:${PORT}`);
