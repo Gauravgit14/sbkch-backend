@@ -23,7 +23,7 @@ app.use((req, res, next) => {
 
 // ✅ Handle CORS + Preflight requests properly
 app.use(cors({
-  origin: "*", // or restrict to your frontend like "https://sbkch.com"
+  origin: "https://sbkch.com", // or restrict to your frontend like "https://sbkch.com"
   methods: ["GET", "POST", "OPTIONS"],
   allowedHeaders: ["Content-Type"]
 }));
