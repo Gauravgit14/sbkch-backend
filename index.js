@@ -60,7 +60,8 @@ app.post("/send", async (req, res) => {
     res.status(200).json({ success: true, complaintId });
   } catch (err) {
     console.error("Error sending email:", err);
-    res.status(500).json({ success: false, error: "Failed to send email" });
+    res.status(500).json({ answer: fallbackMessage, chartData: null });
+
   }
 });
 

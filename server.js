@@ -102,7 +102,7 @@ app.post("/chat", async (req, res) => {
 
   try {
     const response = await openai.chat.completions.create({
-      model: "gpt-4", // or "gpt-3.5-turbo"
+      model: "gpt-3.5-turbo", // or "gpt version"
       messages: [
         {
           role: "user",
